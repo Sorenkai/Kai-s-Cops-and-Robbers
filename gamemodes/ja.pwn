@@ -88,6 +88,7 @@ new HouseInfo[MAX_HOUSES][hInfo];
 new houseid;
 new InHouse[MAX_PLAYERS][MAX_HOUSES];
 new hid;
+new IsCuffed[MAX_PLAYERS];
 
 
 enum sData
@@ -859,6 +860,30 @@ stock udb_hash(buf[]) {
     return (s2 << 16) + s1;
 }
 
+forward Float:GetDistanceBetweenPlayers(p1,p2);
+public Float:GetDistanceBetweenPlayers(p1,p2)
+{
+	new Float:x1, Float:y1, Float:z1, Float:x2, Float:y2, Float:z2;
+	if(!IsPlayerConnected(p1) || !IsPlayerConnected(p2)) return -1.00;
+
+	GetPlayerPos(p1, x1, y1, z1);
+	GetPlayerPos(p2, x2, y2, z2);
+
+	return floatsqroot(floatpower(floatabs(floatsub(x2,x1)),2)+floatpower(floatabs(floatsub(y2,y1)),2)+floatpower(floatabs(floatsub(z2,z1)),2));
+}
+
+stock PlayerName(playerid) {
+  new name[255];
+  GetPlayerName(playerid, name, 255);
+  return name;
+}
+
+
+LoopAnim(playerid,animlib[],animname[], Float:Speed, looping, lockx, locky, lockz, lp)
+{
+    ApplyAnimation(playerid, animlib, animname, Speed, looping, lockx, locky, lockz, lp);
+}
+
 forward ServerRobbery();
 public ServerRobbery()
 {
@@ -1187,3 +1212,4 @@ CMD:stats(playerid, params[])
 
 #include "cmds/admincmds.pwn"
 #include "utils/cars.pwn"
+#include "cmds/policecmds.pwn"
