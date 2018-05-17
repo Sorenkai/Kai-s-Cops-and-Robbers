@@ -88,7 +88,10 @@ new HouseInfo[MAX_HOUSES][hInfo];
 new houseid;
 new InHouse[MAX_PLAYERS][MAX_HOUSES];
 new hid;
+
 new IsCuffed[MAX_PLAYERS];
+new HasCoke[MAX_PLAYERS];
+new HasWeed[MAX_PLAYERS];
 
 
 enum sData
@@ -164,6 +167,8 @@ public OnGameModeInit()
     { // If it returns 0, the the database connection failed so let's inform us through console. You may exit the server if you want to. 
         print("Failed to open a connection to \"server.db\""); 
     }
+	db_query(database, "CREATE TABLE IF NOT EXISTS users (  player TEXT(25),  password TEXT(255),  money integer,  admin integer,  kills integer,  deaths integer, coke integer, weed integer)");
+	db_query(database, "CREATE TABLE IF NOT EXISTS houses ( id INTEGER PRIMARY KEY AUTOINCREMENT, owner text(25), price integer, level integer, x_pos real, y_pos real, z_pos real, x_ent real, y_ent real, z_ent real, owned integer");
     return 1;
 }
 public OnGameModeExit()
@@ -184,6 +189,7 @@ public OnPlayerConnect(playerid)
 	new DBResult: Result, query[265], pName[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, pName, sizeof(pName));
 	format(query, sizeof(query),"SELECT `player` FROM `users` WHERE `player` = '%q'", pName);
+	SetPlayerColor(playerid, COLOR_WHITE);
 	Result = db_query(database, query);
 	if(db_num_rows(Result))
 	{
@@ -208,7 +214,7 @@ public OnPlayerDisconnect(playerid, reason)
 
 	new query[265], pName[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, pName, sizeof(pName));
-	format(query, sizeof(query), "UPDATE `users` SET money = '%i', admin = '%i', kills = '%i', deaths = '%i' WHERE player = '%q'", GetPlayerMoney(playerid), PlayerInfo[playerid][pAdmin], PlayerInfo[playerid][pKills], PlayerInfo[playerid][pDeaths], pName);
+	format(query, sizeof(query), "UPDATE `users` SET money = '%i', admin = '%i', kills = '%i', deaths = '%i', coke = '%i', weed = '%i' WHERE player = '%q'", GetPlayerMoney(playerid), PlayerInfo[playerid][pAdmin], PlayerInfo[playerid][pKills], PlayerInfo[playerid][pDeaths], pName, HasCoke[playerid],HasWeed[playerid]);
 	db_query(database, query);
 	return 1;
 }
@@ -556,6 +562,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					PlayerInfo[playerid][pAdmin] = db_get_field_assoc_int(Result, "admin");
 					PlayerInfo[playerid][pKills] = db_get_field_assoc_int(Result, "kills");
 					PlayerInfo[playerid][pDeaths] = db_get_field_assoc_int(Result, "deaths");
+					HasCoke[playerid] = db_get_field_assoc_int(Result, "coke");
+					HasWeed[playerid] = db_get_field_assoc_int(Result, "weed");
 					db_free_result(Result);
 
 
@@ -784,6 +792,25 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 	return 1;
 }
 
+/*Credits to Dracoblue*/
+stock udb_hash(buf[]) {
+	new length=strlen(buf);
+    new s1 = 1;
+    new s2 = 0;
+    new n;
+    for (n=0; n<length; n++)
+    {
+       s1 = (s1 + buf[n]) % 65521;
+       s2 = (s2 + s1)     % 65521;
+    }
+    return (s2 << 16) + s1;
+}
+
+stock PlayerName(playerid){
+	new name[255];
+	GetPlayerName(playerid, name, 255);
+	return name;
+}
 
 stock UserPath(playerid)
 {
@@ -846,20 +873,6 @@ stock LoadHouses()
     return 1;
 }
 
-/*Credits to Dracoblue*/
-stock udb_hash(buf[]) {
-	new length=strlen(buf);
-    new s1 = 1;
-    new s2 = 0;
-    new n;
-    for (n=0; n<length; n++)
-    {
-       s1 = (s1 + buf[n]) % 65521;
-       s2 = (s2 + s1)     % 65521;
-    }
-    return (s2 << 16) + s1;
-}
-
 forward Float:GetDistanceBetweenPlayers(p1,p2);
 public Float:GetDistanceBetweenPlayers(p1,p2)
 {
@@ -872,10 +885,28 @@ public Float:GetDistanceBetweenPlayers(p1,p2)
 	return floatsqroot(floatpower(floatabs(floatsub(x2,x1)),2)+floatpower(floatabs(floatsub(y2,y1)),2)+floatpower(floatabs(floatsub(z2,z1)),2));
 }
 
-stock PlayerName(playerid) {
-  new name[255];
-  GetPlayerName(playerid, name, 255);
-  return name;
+forward IncreaseWantedLevel(playerid,level);
+public IncreaseWantedLevel(playerid,level)
+{
+	new pwlvl,pwcol, string[128];
+	SetPlayerWantedLevel(playerid, GetPlayerWantedLevel(playerid) + level);
+	pwlvl = GetPlayerWantedLevel(playerid);
+	pwcol = GetPlayerColor(playerid);
+	format(string, sizeof(string), "[WANTED] Your wanted level has been increased to: %i", pwlvl);
+	SendClientMessage(playerid, pwcol, string);
+	if(GetPlayerWantedLevel(playerid) >= 1 && GetPlayerWantedLevel(playerid) <= 5)
+	{
+		SetPlayerColor(playerid, COLOR_YELLOW);
+	}
+	if(GetPlayerWantedLevel(playerid) >= 6 && GetPlayerWantedLevel(playerid) <= 19)
+	{
+		SetPlayerColor(playerid, COLOR_ORANGE);
+	}
+	if(GetPlayerWantedLevel(playerid) >= 20)
+	{
+		SetPlayerColor(playerid, COLOR_RED);
+	}
+	return 1;
 }
 
 

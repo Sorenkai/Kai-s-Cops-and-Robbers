@@ -45,3 +45,4 @@ pawn.json
 #
 
 *.sublime-workspace
+scriptfiles/users.txt
