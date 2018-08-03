@@ -94,6 +94,11 @@ new HasCoke[MAX_PLAYERS];
 new HasWeed[MAX_PLAYERS];
 
 
+
+//Textdraw
+new Text:MessageTD[MAX_PLAYERS];
+
+
 enum sData
 {
 	storeName[128],
@@ -199,6 +204,20 @@ public OnPlayerConnect(playerid)
 	{
 		ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, ""COL_WHITE"Register",""COL_WHITE"Enter your desired password below to register a new account.","Register" , "Quit");
 	}
+
+
+	//Textdraws
+	MessageTD[playerid] = TextDrawCreate(241.000000, 410.000000, "TICKET RECIEVED");
+	TextDrawBackgroundColor(MessageTD[playerid], 255);
+	TextDrawFont(MessageTD[playerid], 1);
+	TextDrawLetterSize(MessageTD[playerid], 0.549999, 1.500000);
+	TextDrawColor(MessageTD[playerid], -1);
+	TextDrawSetOutline(MessageTD[playerid], 0);
+	TextDrawSetProportional(MessageTD[playerid], 1);
+	TextDrawSetShadow(MessageTD[playerid], 1);
+	TextDrawUseBox(MessageTD[playerid], 1);
+	TextDrawBoxColor(MessageTD[playerid], 255);
+	TextDrawTextSize(MessageTD[playerid], 384.000000, 0.000000);
 	return 1;
 }
 

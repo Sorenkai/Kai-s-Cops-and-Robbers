@@ -85,6 +85,22 @@ CMD:search(playerid, params[])
 
 CMD:suspect(playerid, params[])
 {
+    new reason[128];
+    new targetid;
+    new string[128];
+    if(sscanf(params, "us[100] ", targetid, reason)) return SendClientMessage(playerid, COLOR_SYNTAX, "SYNTAX: /suspect <playerid> <reason>");
+    if(gPlayerClass[playerid] != POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: Only law enforcement can suspect other players");
+    if(gPlayerClass[targetid] == POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not suspect fellow police officers");
+    if(!IsPlayerConnected(targetid)) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is not online");
+    if(targetid == playerid) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not suspect yourself!");
+    if(HasBeenReportedRecently[targetid] > 1) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player has been reported recently");
+    format(string, sizeof(string), "[POLICE] Officer %s(%i) has reported you. Reason: %s", PlayerName(playerid),playerid,reason);
+    SendClientMessage(targetid, COLOR_BLUE, string);
+    TextDrawSetString(MessageTD[targetid], "TICKET RECIEVED");
+    TextDrawShowForPlayer(targetid, MessageTD[targetid]);
+    MessageTDTime[ID] =5;
+    IncreaseWantedLevel(targetid, 2);
+    HasBeenReportedRecently[targetid] = 60;
     
     return 1;
 }
