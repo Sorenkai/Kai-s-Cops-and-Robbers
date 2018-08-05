@@ -98,9 +98,94 @@ CMD:suspect(playerid, params[])
     SendClientMessage(targetid, COLOR_BLUE, string);
     TextDrawSetString(MessageTD[targetid], "TICKET RECIEVED");
     TextDrawShowForPlayer(targetid, MessageTD[targetid]);
-    MessageTDTime[ID] =5;
+    MessageTDTime[targetid] =5;
     IncreaseWantedLevel(targetid, 2);
     HasBeenReportedRecently[targetid] = 60;
-    
+    IncreaseScore(playerid, 1);
+    return 1;
+}
+
+CMD:ticket(playerid, params[])
+{
+    new targetid, string[128];
+    if(sscanf(params,"u", targetid)) return SendClientMessage(playerid, COLOR_SYNTAX, "SYNTAX: /ticket <playerid>");
+    if(gPlayerClass[playerid] != POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: Only law enforcement can issue tickets to other players");
+    if(gPlayerClass[targetid] == POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not issue tickets to fellow police officers");
+    if(!IsPlayerConnected(targetid)) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is not online");
+    if(targetid == playerid) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not issue tickets to yourself");
+    if(HasTicket[targetid]) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player already has an open ticket");
+    format(string, sizeof string, "[POLICE] Officer %s(%i) has issued you with a $2000 ticket",PlayerName(playerid),playerid);
+    SendClientMessage(targetid, COLOR_BLUE, string);
+    SendClientMessage(targetid, COLOR_BLUE, "You have 2 minutes to pay this ticket with /payticket. Fail to do so and your wanted level will increase");
+    SendClientMessage(playerid, COLOR_BLUE, "[POLICE] You have issued %s(%i) with a $2000 ticket");
+    TextDrawSetString(MessageTD[targetid], "TICKET RECIEVED");
+    TextDrawShowForPlayer(targetid, MessageTD[targetid]);
+    MessageTDTime[targetid] =5;
+    TimeToPayTicket[targetid] = 120;
+    HasTicket[targetid] = 1;
+    return 1;
+}
+
+CMD:payticket(playerid,params[])
+{
+    new string[128];
+    if(HasTicket[playerid] != 1) return SendClientMessage(playerid, COLOR_RED, "ERROR: You do not have an open ticket to pay");
+    SendClientMessage(playerid, COLOR_BLUE, "[TICKET] You have paid your $2000 ticket. Your wanted level has been removed");
+    format(string, sizeof string, "[TICKET] %s(%i) has paid their $2000 ticket");
+    SendClientMessageToAllCops(string);
+    HasTicket[playerid] =0;
+    SetPlayerWantedLevel(playerid, 0);
+    GivePlayerMoney(playerid, -2000);
+    return 1;
+}
+
+CMD:po(playerid, params[])
+{
+    new targetid, string[128];
+    if(sscanf(params,"u",targetid)) return SendClientMessage(playerid, COLOR_SYNTAX, "SYNTAX: /po <playerid>");
+    if(!IsPlayerConnected(targetid)) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is not online");
+    if(!IsPlayerInAnyVehicle(targetid)) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is not in any vehicle");
+    if(GetDistanceBetweenPlayers(playerid,targetid) > 50) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is too far away");
+    if(gPlayerClass[playerid] != POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: Only law enforcement can request other players to pull over");
+    if(gPlayerClass[targetid] == POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not request fellow police officers");
+    format(string, sizeof string, "[POLICE] You have requested %s(%i) to pull over, issue them with a ticket if they refuse to do so", PlayerName(targetid),targetid);
+    SendClientMessage(playerid, COLOR_BLUE, string);
+    format(string, sizeof string, "[POLICE] Officer %s(%i) has requested you to pull over", PlayerName(playerid),playerid);
+    SendClientMessage(targetid, COLOR_BLUE, string);
+    TextDrawSetString(MessageTD[targetid], "PULL OVER");
+    TextDrawShowForPlayer(targetid , MessageTD[targetid]);
+    MessageTDTime[targetid] = 5;
+    return 1;
+}
+
+CMD:arrest(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params,"u",targetid)) return SendClientMessage(playerid, COLOR_SYNTAX, "SYNTAX: /arrest <playerid>");
+    if(!IsPlayerConnected(targetid)) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is not online");
+    if(gPlayerClass[playerid] != POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: Only law enforcement can arrest other players");
+    if(gPlayerClass[targetid] == POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not arrest fellow police officers");
+    if(GetDistanceBetweenPlayers(playerid,targetid) > 4) return SendClientMessage(playerid, COLOR_RED, "ERROR: This player is too far away");
+    if(GetPlayerWantedLevel(targetid) < 3 ) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not arrest this because their wanted level is too low. Do /ticket instead");
+    if(IsCuffed[targetid] == 0) return SendClientMessage(playerid, COLOR_RED, "ERROR: You need to cuff a player before you can arrest them");
+    if(playerid == targetid) return SendClientMessage(playerid, COLOR_RED, "ERROR: You can not arrest yourself");
+    IsArrested[targetid] = 1;
+    ArrestTime[targetid] = 180;
+    IsCuffed[targetid] = 0;
+
+    //Set player to jail positions, reward playerid, reset vars/guns/wantedlevel targetid
+
+
+
+    return 1;
+}
+
+CMD:911(playerid, params[])
+{
+    new string[128];
+    if(!strlen(params)) return SendClientMessage(playerid, COLOR_SYNTAX, "SYNTAX: /911 <message>");
+    if(gPlayerClass[playerid] == POLICE) return SendClientMessage(playerid, COLOR_RED, "ERROR: Law enforcement do not need to use this command");
+    format(string, sizeof string, "(911 Call) %s(%i): %s",PlayerName(playerid),playerid,params);
+    SendClientMessageToAllCops(string);
     return 1;
 }

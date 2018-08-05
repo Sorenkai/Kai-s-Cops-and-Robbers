@@ -46,3 +46,4 @@ pawn.json
 
 *.sublime-workspace
 scriptfiles/users.txt
+.vscode/tasks.json-duplicate

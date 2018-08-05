@@ -92,6 +92,12 @@ new hid;
 new IsCuffed[MAX_PLAYERS];
 new HasCoke[MAX_PLAYERS];
 new HasWeed[MAX_PLAYERS];
+new HasBeenReportedRecently[MAX_PLAYERS];
+new MessageTDTime[MAX_PLAYERS];
+new HasTicket[MAX_PLAYERS];
+new TimeToPayTicket[MAX_PLAYERS];
+new IsArrested[MAX_PLAYERS];
+new ArrestTime[MAX_PLAYERS];
 
 
 
@@ -167,7 +173,12 @@ public OnGameModeInit()
 	printf("--------------------------");
 	SetGameModeText("CNR");
 	DisableInteriorEnterExits();
+	
+	///--Timer Setup
 	SetTimer("ServerRobbery", 1000, 1);
+	SetTimer("PlayerSecVars", 1000, 1);
+
+	//--Database setup
 	if ((database = db_open("server.db")) == DB: 0)  // We open the database with name server.db and store the database connection to the "Database" variable. Directly checking if the connection handle is invalid 
     { // If it returns 0, the the database connection failed so let's inform us through console. You may exit the server if you want to. 
         print("Failed to open a connection to \"server.db\""); 
@@ -837,7 +848,6 @@ stock UserPath(playerid)
 	GetPlayerName(playerid,pName,sizeof(pName));
 	format(string, sizeof(string),PATH,pName);
 	return string;
-
 }
 
 stock LoadHouses()
@@ -928,6 +938,13 @@ public IncreaseWantedLevel(playerid,level)
 	return 1;
 }
 
+forward IncreaseScore(playerid, amount);
+public IncreaseScore(playerid, amount)
+{
+	SetPlayerScore(playerid, GetPlayerScore(playerid) + amount);
+	return 1;
+}
+
 
 LoopAnim(playerid,animlib[],animname[], Float:Speed, looping, lockx, locky, lockz, lp)
 {
@@ -975,6 +992,60 @@ public LoadUser_data(playerid, name[],value[])
 	INI_Int("Admin", PlayerInfo[playerid][pAdmin]);
 	INI_Int("Kills", PlayerInfo[playerid][pKills]);
 	INI_Int("Deaths", PlayerInfo[playerid][pDeaths]);
+	return 1;
+}
+
+forward PlayerSecVars();
+public PlayerSecVars()
+{
+	//new string[128];
+	for(new i=0; i < MAX_PLAYERS; i++)
+	{
+		if(IsPlayerConnected(i)){
+			if(HasBeenReportedRecently[i] >= 1){
+				HasBeenReportedRecently[i] --;
+			}
+			if(MessageTDTime[i] > 1)
+	        {
+	            MessageTDTime[i] --;
+			}
+			if(MessageTDTime[i] == 1)
+			{
+				TextDrawHideForPlayer(i,MessageTD[i]);
+			}
+			if(TimeToPayTicket[i] >= 1)
+			{
+				TimeToPayTicket[i] --;
+			}
+			if(TimeToPayTicket[i] == 1)
+			{
+				SendClientMessage(i, COLOR_RED, "[TICKET] You have failed to pay your ticket. Your wanted level has increased");
+				IncreaseWantedLevel(i,4);
+				HasTicket[i] =0;
+			}
+			if(ArrestTime[i] > 1)
+			{
+				ArrestTime[i] --;
+			}
+			if(ArrestTime[i] == 1)
+			{
+				// Release player from jail
+			}
+		}
+	}
+	return 1;
+}
+
+forward SendClientMessageToAllCops(string[]);
+public SendClientMessageToAllCops(string[])
+{
+	for(new i=0;i<MAX_PLAYERS;i++)
+	{
+		if(gPlayerClass[i] == POLICE)
+		{
+			SendClientMessage(i, COLOR_BLUE, string);
+		}
+	}
 	return 1;
 }
 

@@ -9,6 +9,8 @@ v0.1 - Initial Release:
   Added Login-Register system using SQLite  
   Added Small admin system with a few commands  
   Added Simple class system (will change this later on)  
+  Added first police commands 
+  All player sec vars are now managed via 1 timer
 
 ## Installation
 
@@ -16,7 +18,7 @@ Download and configure server.cfg to your liking.
 You might have to add some of the includes and/or plugins yourself as I've installed them using sampctl.   
 
 ## Credits
-Gamemode by Me
+Gamemode by Me 
 Sampctl by Southclaws - https://github.com/Southclaws/sampctl  
 YSI by Y_Less (forked by Southclaws) - https://github.com/Southclaws/YSI-4.0  
 ZCMD by Zeex - http://forum.sa-mp.com/showthread.php?t=91354  
