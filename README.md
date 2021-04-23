@@ -1,6 +1,6 @@
 ## Kai's Cops and Robbers
 
-This is the first gamemode I've made, I will gradually add more feature and fix bugs.  
+This is the first gamemode I've made, I will gradually add more features and fix bugs.  
 
 ## Changelog
 
